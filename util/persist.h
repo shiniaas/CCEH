@@ -8,8 +8,8 @@
 #define CAS(_p, _u, _v)  (__atomic_compare_exchange_n (_p, _u, _v, false, __ATOMIC_ACQUIRE, __ATOMIC_ACQUIRE))
 #define kCacheLineSize (64)
 
-extern uint64_t kWriteLatencyInNS;
-extern uint64_t clflushCount;
+uint64_t kWriteLatencyInNS=10;
+uint64_t clflushCount=0;
 
 static inline void CPUPause(void) {
   __asm__ volatile("pause":::"memory");
@@ -28,7 +28,7 @@ inline void mfence(void) {
 }
 
 inline void clflush(char* data, size_t len) {
-  volatile char *ptr = (char*)((unsigned long)data & (~kCacheLineSize-1));
+  volatile char *ptr = (char*)((unsigned long)data & (~(kCacheLineSize-1)));
   mfence();
   for (; ptr < data+len; ptr+=kCacheLineSize) {
     unsigned long etcs = ReadTSC() + (unsigned long) (kWriteLatencyInNS*CPU_FREQ_MHZ/1000);
